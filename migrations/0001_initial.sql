@@ -1,0 +1,12 @@
+CREATE TABLE users (id text PRIMARY KEY, name text NOT NULL);
+CREATE TABLE workspaces (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), owner_id text NOT NULL REFERENCES users(id), name text NOT NULL, description text NOT NULL DEFAULT '', created_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE documents (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), workspace_id uuid NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE, title text NOT NULL, kind text NOT NULL, content text NOT NULL, hash text NOT NULL, created_at timestamptz NOT NULL DEFAULT now(), UNIQUE(workspace_id, hash));
+CREATE TABLE chunks (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), document_id uuid NOT NULL REFERENCES documents(id) ON DELETE CASCADE, ordinal integer NOT NULL, text text NOT NULL);
+CREATE INDEX chunks_document_idx ON chunks(document_id);
+CREATE INDEX chunks_search_idx ON chunks USING gin(to_tsvector('english', text));
+CREATE TABLE tasks (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), workspace_id uuid NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE, prompt text NOT NULL, created_at timestamptz NOT NULL DEFAULT now());
+CREATE INDEX tasks_workspace_idx ON tasks(workspace_id, created_at DESC);
+CREATE TABLE runs (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), task_id uuid NOT NULL REFERENCES tasks(id) ON DELETE CASCADE, status text NOT NULL CHECK(status IN ('running','completed','failed','cancelled')), answer text NOT NULL DEFAULT '', activities jsonb NOT NULL DEFAULT '[]', citations jsonb NOT NULL DEFAULT '[]', provider text NOT NULL, model text NOT NULL, started_at timestamptz NOT NULL DEFAULT now(), completed_at timestamptz, latency_ms integer, context_tokens integer NOT NULL DEFAULT 0, retrieval_count integer NOT NULL DEFAULT 0, usage jsonb, error text);
+CREATE INDEX runs_task_idx ON runs(task_id);
+CREATE UNIQUE INDEX one_running_per_task ON runs(task_id) WHERE status = 'running';
+CREATE TABLE tool_executions (id uuid PRIMARY KEY, run_id uuid NOT NULL REFERENCES runs(id) ON DELETE CASCADE, name text NOT NULL, status text NOT NULL, duration_ms integer NOT NULL, summary text NOT NULL);
