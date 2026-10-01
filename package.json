@@ -1,0 +1,62 @@
+{
+  "name": "agentic-workbench",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A cited research workspace with observable agent workflows, bounded retrieval, and native + MCP tools.",
+  "packageManager": "pnpm@11.22.0",
+  "scripts": {
+    "dev": "next dev --hostname 127.0.0.1",
+    "build": "next build",
+    "start": "next start --hostname 127.0.0.1",
+    "lint": "eslint .",
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "eval": "tsx scripts/evaluate.ts",
+    "db:migrate": "tsx scripts/migrate.ts",
+    "db:seed": "tsx scripts/seed.ts",
+    "mcp": "tsx packages/mcp-server/index.ts",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "screenshots": "tsx scripts/screenshots.ts"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "dependencies": {
+    "@ai-sdk/openai-compatible": "^3.0.60",
+    "@modelcontextprotocol/sdk": "^1.31.0",
+    "ai": "^7.0.123",
+    "dotenv": "^18.0.4",
+    "drizzle-orm": "^0.45.3",
+    "lucide-react": "^1.49.0",
+    "next": "^16.3.7",
+    "pdf-parse": "^2.4.5",
+    "pg": "^8.23.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.63.0",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.6.3",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.3.7",
+    "jsdom": "^30.1.1",
+    "prettier": "^3.9.9",
+    "tsx": "^4.23.15",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.3"
+  },
+  "type": "module"
+}
