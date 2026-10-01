@@ -39,7 +39,7 @@ export function demoPlan(prompt: string): Plan {
     "/": "divide",
   } as const;
   return planSchema.parse({
-    query: prompt,
+    query: prompt.slice(0, 1500),
     compare: /compar|proposal|trade.?off/i.test(prompt),
     currentTime: /current (date|time)|today.s date/i.test(prompt),
     calculator: expression

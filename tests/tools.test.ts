@@ -13,6 +13,10 @@ import {
 } from "../src/server/retrieval/context";
 import { seedDocuments, examplePrompt } from "../src/server/seed-content";
 describe("typed tools and planning", () => {
+  it("accepts the maximum user prompt while bounding the retrieval query", () => {
+    const plan = demoPlan("architecture ".repeat(200).slice(0, 2000));
+    expect(plan.query).toHaveLength(1500);
+  });
   it("selects arithmetic for explicit operands", () => {
     expect(demoPlan("Calculate 40 * 10").calculator).toEqual({
       a: 40,
