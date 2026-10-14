@@ -1,0 +1,24 @@
+diff --git a/dist/index.cjs b/dist/index.cjs
+index 4868ffba35d991e03831204695d11e703a78c2d3..c7c56f6d4ac7047123a42ad4f71c09501fd4a2b3 100644
+--- a/dist/index.cjs
++++ b/dist/index.cjs
+@@ -398,6 +398,7 @@ var Walker = class {
+ 					if (stat.isDirectory()) {
+ 						resolvedPath = normalizePath(resolvedPath, this.state.options);
+ 						if (exclude && exclude(entry.name, useRealPaths ? resolvedPath : path$1 + pathSeparator)) return;
++						this.pushDirectory(useRealPaths ? resolvedPath : path$1 + pathSeparator, paths, filters);
+ 						this.walkDirectory(this.state, resolvedPath, useRealPaths ? resolvedPath : path$1 + pathSeparator, depth - 1, this.walk);
+ 					} else {
+ 						resolvedPath = useRealPaths ? resolvedPath : path$1;
+diff --git a/dist/index.mjs b/dist/index.mjs
+index 5c37e092b507dccc97d1b5a815cecceb94445698..d63495c0e27a30cce5f9a2de38dbc723e6f27aaf 100644
+--- a/dist/index.mjs
++++ b/dist/index.mjs
+@@ -380,6 +380,7 @@ var Walker = class {
+ 					if (stat.isDirectory()) {
+ 						resolvedPath = normalizePath(resolvedPath, this.state.options);
+ 						if (exclude && exclude(entry.name, useRealPaths ? resolvedPath : path + pathSeparator)) return;
++						this.pushDirectory(useRealPaths ? resolvedPath : path + pathSeparator, paths, filters);
+ 						this.walkDirectory(this.state, resolvedPath, useRealPaths ? resolvedPath : path + pathSeparator, depth - 1, this.walk);
+ 					} else {
+ 						resolvedPath = useRealPaths ? resolvedPath : path;
