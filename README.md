@@ -180,6 +180,8 @@ docs/                     Architecture, ADRs, evidence, screenshots
 
 ## Security and operational limits
 
+See [the security policy](SECURITY.md) for supported versions, private vulnerability reporting, and deployment boundaries. Keep credentials and private documents out of commits, issues, and screenshots; use a GitHub `noreply` commit address if you want to keep your personal email private. Dependabot proposes weekly updates for review; updates are not automatically merged.
+
 - One local identity; workspace ownership checks are centralized. This is not multi-user auth.
 - Same-origin writes, loopback Host validation on reads and writes, parameterized SQL, Zod boundaries, and a process-local write rate limiter.
 - File allowlist, actual-body size limits, 2 MB uploads, 100 PDF pages, and 150,000 extracted characters. PDF parsing is lazy-loaded. Scans require external OCR. PDF ingestion should move to an isolated resource-limited worker before accepting hostile public uploads.

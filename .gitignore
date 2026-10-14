@@ -8,3 +8,14 @@ test-results/
 .DS_Store
 coverage/
 next-env.d.ts
+# Private credentials, database exports, and history-rewrite recovery copies.
+*.key
+*.pem
+*.p12
+*.pfx
+*.dump
+*.sql.gz
+*.sqlite
+*.sqlite3
+*.bundle
+history-backups/
