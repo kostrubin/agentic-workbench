@@ -1,0 +1,140 @@
+diff --git a/dist/utils/get-root-dirs.js b/dist/utils/get-root-dirs.js
+index 47108c943514a1d7e686c5eb18aad00a59963c83..03a829085063a599f7f07882c3861ccd70b345f6 100644
+--- a/dist/utils/get-root-dirs.js
++++ b/dist/utils/get-root-dirs.js
+@@ -1,33 +1,106 @@
+ "use strict";
+-Object.defineProperty(exports, "__esModule", {
+-    value: true
+-});
+-Object.defineProperty(exports, "getRootDirs", {
+-    enumerable: true,
+-    get: function() {
+-        return getRootDirs;
++Object.defineProperty(exports, "__esModule", { value: true });
++Object.defineProperty(exports, "getRootDirs", { enumerable: true, get: function() { return getRootDirs; } });
++const { globSync } = require("tinyglobby");
++const fillRange = require("fill-range");
++const { isAbsolute, parse } = require("node:path");
++
++// Split only top-level commas: brackets, nested braces and quotes are literals
++// inside an alternative. Expand outer choices first to retain legacy ordering.
++function splitChoices(body) {
++    const values = [];
++    let start = 0, braces = 0, brackets = 0, parens = 0, quote = "";
++    for (let i = 0; i < body.length; i++) {
++        const char = body[i];
++        if (quote) { if (char === quote) quote = ""; continue; }
++        if (brackets) { if (char === "]") brackets--; continue; }
++        if (char === "\"" || char === "'" || char === "`") { quote = char; continue; }
++        if (char === "[") brackets++;
++        else if (char === "{") braces++;
++        else if (char === "}") braces--;
++        else if (char === "(") parens++;
++        else if (char === ")") parens--;
++        else if (char === "," && !braces && !parens) { values.push(body.slice(start, i)); start = i + 1; }
+     }
+-});
+-var _fastglob = require("fast-glob");
+-/**
+- * Process a Next.js root directory glob.
+- */ var processRootDir = function(rootDir) {
+-    return (0, _fastglob.globSync)(rootDir.replace(/\\/g, '/'), {
+-        onlyDirectories: true
+-    });
+-};
+-var getRootDirs = function(context) {
+-    var rootDirs = [
+-        context.cwd
+-    ];
+-    var nextSettings = context.settings.next || {};
+-    var rootDir = nextSettings.rootDir;
+-    if (typeof rootDir === 'string') {
+-        rootDirs = processRootDir(rootDir);
+-    } else if (Array.isArray(rootDir)) {
+-        rootDirs = rootDir.map(function(dir) {
+-            return typeof dir === 'string' ? processRootDir(dir) : [];
+-        }).flat();
++    if (!values.length) return;
++    values.push(body.slice(start));
++    return values.map(value => value.replace(/(["'])(.*?)\1/g, "$2"));
++}
++
++// Preserve ordinary fast-glob brace choices/ranges without its recursive braces
++// dependency. These limits deliberately reject pathological lint configuration.
++function expandRootPatterns(input) {
++    if (input.length > 10000) throw new RangeError("Next rootDir pattern is too long");
++    const pending = [input];
++    const patterns = [];
++    let generated = input.length;
++    while (pending.length) {
++        const pattern = pending.pop();
++        const stack = [];
++        let quote = "";
++        let expansion;
++        for (let i = 0; i < pattern.length; i++) {
++            const char = pattern[i];
++            if (quote) { if (char === quote) quote = ""; continue; }
++            if (char === "\"" || char === "'" || char === "`") { quote = char; continue; }
++            if (char === "[") { while (i + 1 < pattern.length && pattern[++i] !== "]") {} continue; }
++            if (char === "{") {
++                stack.push(i);
++                if (stack.length > 128) throw new RangeError("Next rootDir nesting is too deep");
++            } else if (char === "}" && stack.length) {
++                const start = stack.pop();
++                const body = pattern.slice(start + 1, i);
++                let values;
++                const range = body.replace(/(["'])(.*?)\1/g, "$2").match(/^(-?\d+|[A-Za-z])\.\.(-?\d+|[A-Za-z])(?:\.\.(-?\d+))?$/);
++                if (range) {
++                    const a = /^-?\d+$/.test(range[1]) && /^-?\d+$/.test(range[2]) ? Number(range[1]) : range[1].charCodeAt(0);
++                    const b = /^-?\d+$/.test(range[1]) && /^-?\d+$/.test(range[2]) ? Number(range[2]) : range[2].charCodeAt(0);
++                    const step = Math.abs(Number(range[3] || 1)) || 1;
++                    if (![a, b, step].every(Number.isSafeInteger) || Math.floor(Math.abs(b - a) / step) + 1 > 1000) {
++                        throw new RangeError("Next rootDir range exceeds its limit");
++                    }
++                    values = fillRange(range[1], range[2], step);
++                } else {
++                    values = splitChoices(body);
++                }
++                if (values && values.length && (!expansion || start < expansion.start)) { expansion = { start, end: i + 1, values }; }
++            }
++        }
++        if (!expansion) { patterns.push(pattern); continue; }
++        for (let index = expansion.values.length - 1; index >= 0; index--) {
++            const value = expansion.values[index];
++            const expanded = pattern.slice(0, expansion.start) + value + pattern.slice(expansion.end);
++            generated += expanded.length;
++            if (generated > 1000000 || pending.length + patterns.length >= 1000) {
++                throw new RangeError("Next rootDir expansion exceeds its limit");
++            }
++            pending.push(expanded);
++        }
+     }
++    // The legacy helper sorted expanded alternatives by length before globbing.
++    return patterns.sort((a, b) => a.length - b.length);
++}
++
++function processRootDir(rootDir) {
++    const roots = [];
++    for (const pattern of expandRootPatterns(rootDir.replace(/\\/g, "/"))) {
++        // Next processes separate array entries independently, including negations.
++        if (pattern.startsWith("!") && !pattern.startsWith("!(")) continue;
++        // fast-glob excludes the traversal base for a terminal globstar.
++        const glob = pattern === "**" ? "**/*" : pattern.replace(/\/\*\*\/?$/, "/**/*");
++        for (let root of globSync(glob, { onlyDirectories: true, expandDirectories: false, absolute: isAbsolute(pattern), cwd: isAbsolute(pattern) ? parse(pattern).root : undefined })) {
++            if (root.length > 1) root = root.replace(/\/$/, "");
++            if (pattern.startsWith("./") && !root.startsWith("./")) root = "./" + root;
++            if (!roots.includes(root)) roots.push(root);
++        }
++    }
++    return roots;
++}
++function getRootDirs(context) {
++    let rootDirs = [context.cwd];
++    const nextSettings = context.settings.next || {};
++    const rootDir = nextSettings.rootDir;
++    if (typeof rootDir === "string") rootDirs = processRootDir(rootDir);
++    else if (Array.isArray(rootDir)) rootDirs = rootDir.flatMap(dir => typeof dir === "string" ? processRootDir(dir) : []);
+     return rootDirs;
+-};
++}
