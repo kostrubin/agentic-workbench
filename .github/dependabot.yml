@@ -18,6 +18,19 @@ updates:
           - minor
           - patch
     ignore:
+      # Exact-version Next lint patches need a reviewed port on every upgrade.
+      # Only ordinary version updates are manual; security update attempts remain
+      # enabled and may still require a maintainer to port the patch.
+      - dependency-name: next
+        update-types:
+          - version-update:semver-major
+          - version-update:semver-minor
+          - version-update:semver-patch
+      - dependency-name: eslint-config-next
+        update-types:
+          - version-update:semver-major
+          - version-update:semver-minor
+          - version-update:semver-patch
       # Upgrade these majors together only after parser/plugin compatibility
       # has been verified. Minor/patch updates remain enabled.
       - dependency-name: typescript
