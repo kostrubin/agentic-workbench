@@ -2,11 +2,13 @@
 
 ## Decision
 
-Keep the existing Next.js, React, TypeScript, ESLint, and pnpm versions. Replace the development-only Next ESLint plugin's `fast-glob` dependency with pinned `tinyglobby` 0.2.17 through pnpm package extensions and an exact-version override. Apply reproducible patches to `@next/eslint-plugin-next` 16.3.8 and `fdir` 6.5.0. Application code and lint rule severity remain unchanged.
+The original migration kept the existing Next.js, React, TypeScript, ESLint, and pnpm versions. It replaced the development-only Next ESLint plugin's `fast-glob` dependency with pinned `tinyglobby` 0.2.17 through pnpm package extensions and an exact-version override, applying reproducible patches to `@next/eslint-plugin-next` 16.3.8 and `fdir` 6.5.0. Application code and lint rule severity remained unchanged.
+
+[The subsequent maintenance decision](007-next-lint-maintenance.md) upgrades Next.js and `eslint-config-next` together to 16.4.0 and retargets the plugin patch to 16.4.0. It preserves this adapter, the Fdir patch, and the original regression expectations.
 
 ## Reason
 
-The previous chain included `braces` 3.0.3 and GHSA-vfj7-8cjw-p6xm. There is no published fixed braces release as of October 14, 2026. Ordinary Next lint updates retain that dependency. The current application does not set `settings.next.rootDir`, so its normal lint run did not invoke the glob branch; the dependency was still present in the development graph.
+The previous chain included `braces` 3.0.3 and GHSA-vfj7-8cjw-p6xm. There was no published fixed braces release at the time of the October 14, 2026 migration. Next lint 16.4.0 still retains that dependency. The application did not set `settings.next.rootDir`, so its normal lint run did not invoke the glob branch; the dependency was still present in the development graph.
 
 The direction follows [Next's unmerged migration proposal](https://github.com/vercel/next.js/pull/89531). This repository maintains its own tested adaptation rather than relying on an unreviewed PR or a blind package alias.
 
@@ -20,7 +22,7 @@ Fdir's original directory-symlink callback traversed a link without returning th
 
 ## Maintenance and verification
 
-The manifest and resolved main-stack versions must remain identical to the base commit. Frozen-lockfile installation must apply both patches. Regression tests load the actual installed Next plugin and check expected directory sets and lint messages; no vulnerable library is added just to serve as a test oracle.
+The original migration required the manifest and resolved main-stack versions to remain identical to its base commit. Subsequent upgrades follow [the maintenance decision](007-next-lint-maintenance.md), with each approved version change scoped explicitly. Frozen-lockfile installation must apply both patches. The original 50 compatibility checks include directory sets and lint messages captured from the installed, unmodified 16.3.8 plugin, plus the adaptation's explicit resource bounds and Fdir symlink handling. Subsequent upgrades must not replace the recorded expectations with the new implementation's output. Tests load the actual installed Next plugin; no vulnerable library is added just to serve as a test oracle.
 
 Run formatting, lint, typecheck, unit/component tests, evaluations, database/provider/MCP integration tests, production build, and desktop/mobile E2E. Check the complete dependency audit and absence of `fast-glob`, `micromatch`, and `braces` in the lockfile. A clean audit is a current advisory result, not a universal security guarantee.
 
