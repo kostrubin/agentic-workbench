@@ -97,9 +97,17 @@ See [architecture](docs/architecture.md), [context engineering](docs/context-eng
 | Retrieval   | PostgreSQL English full-text search with a GIN index                        |
 | Protocol    | Official MCP TypeScript SDK 1.x, Streamable HTTP                            |
 | Testing     | Vitest, React Testing Library, Playwright, axe-core                         |
-| Quality     | ESLint 9, Prettier, pnpm lockfile, GitHub Actions                           |
+| Quality     | ESLint 10.12.0, Prettier, pnpm lockfile, GitHub Actions                     |
 
-Authored CSS keeps the small component system easy to audit; a utility framework would not improve this particular surface. TypeScript 6 and ESLint 9 are intentional compatibility pins: the installed TypeScript ESLint parser rejects TS 7, and Next's React lint plugins do not yet support ESLint 10. Revisit together, rather than suppressing errors. Exact versions are in the lockfile.
+Authored CSS keeps the small component system easy to audit; a utility framework would not improve this particular surface. TypeScript 6 remains a compatibility boundary; a TypeScript 7 upgrade requires a separate parser and lint compatibility review. Exact versions are in the lockfile.
+
+The lockfile resolves ESLint **10.12.0**, using the upstream ESLint 10 adaptation in `eslint-config-next` 16.4.0. Three retained plugins still publish peer ranges ending at ESLint 9, so pnpm has local peer-version exceptions scoped to exactly:
+
+- `eslint-plugin-import@2.32.0`
+- `eslint-plugin-react@7.37.5`
+- `eslint-plugin-jsx-a11y@6.10.2`
+
+Each exception permits ESLint `^10.12.0` (10.12.0 and later 10.x releases), excludes ESLint 11, and does not carry over to a new plugin version. Strict peer validation remains enabled, including an explicit `pnpm peers check --lockfile-only` CI step after installation. The exceptions do not disable lint rules or establish upstream plugin support; they record compatibility tested for this project. Review them on lint upgrades and remove them when published plugin support and regression checks permit. See [the ESLint 10 migration decision](docs/decisions/008-eslint-10-migration.md) for details.
 
 ## Real AI mode
 
