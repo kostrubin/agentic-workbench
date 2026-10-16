@@ -25,9 +25,9 @@
     "node": ">=24.0.0"
   },
   "dependencies": {
-    "@ai-sdk/openai-compatible": "^3.0.67",
+    "@ai-sdk/openai-compatible": "^3.0.68",
     "@modelcontextprotocol/sdk": "^1.32.1",
-    "ai": "^7.0.137",
+    "ai": "^7.0.138",
     "dotenv": "^18.0.7",
     "drizzle-orm": "^0.45.4",
     "lucide-react": "^1.55.0",
