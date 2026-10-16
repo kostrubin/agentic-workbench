@@ -31,8 +31,9 @@ updates:
           - version-update:semver-major
           - version-update:semver-minor
           - version-update:semver-patch
-      # Upgrade these majors together only after parser/plugin compatibility
-      # has been verified. Minor/patch updates remain enabled.
+      # Review future TypeScript and ESLint majors manually after parser/plugin
+      # compatibility checks. ESLint 10.x minor/patch updates remain enabled;
+      # the scoped peer exceptions exclude ESLint 11 and later majors.
       - dependency-name: typescript
         update-types:
           - version-update:semver-major

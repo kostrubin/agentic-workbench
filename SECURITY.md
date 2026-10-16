@@ -39,6 +39,8 @@ GitHub secret scanning and push protection are supplemented by a Gitleaks check 
 
 Dependabot opens dependency and GitHub Actions updates for review; updates are not automatically merged. While the version-scoped Next lint patch is maintained, ordinary version updates for `next` and `eslint-config-next` are prepared together in a separate maintainer PR. Only their semver version-update types are ignored; Dependabot security update attempts and alerts remain enabled. A security update may still require a manual patch port and compatibility checks before it can succeed. The TypeScript and ESLint major-version compatibility boundaries are intentional and must be revisited manually. See [the Next lint maintenance decision](docs/decisions/007-next-lint-maintenance.md) for the upgrade procedure.
 
+ESLint 10 uses the upstream Next configuration adaptation and three peer exceptions scoped to exact versions of the import, React, and JSX accessibility plugins. The exceptions allow ESLint `^10.12.0`, excluding future majors; strict peer validation remains enabled for all other requirements. CI explicitly runs `pnpm peers check --lockfile-only` after installation because a frozen install alone can skip peer validation. These local exceptions are not upstream compatibility guarantees. Review them on each lint upgrade and remove them when published plugin support and regression checks permit. See [the ESLint 10 migration decision](docs/decisions/008-eslint-10-migration.md) for scope and validation requirements.
+
 Continuous integration exercises demo, local provider fixtures, and local MCP integration; it does not establish production deployment safety or test a paid AI endpoint.
 
 ## Lint dependency mitigation

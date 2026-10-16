@@ -2,6 +2,14 @@ allowBuilds:
   esbuild: true
   sharp: true
   unrs-resolver: true
+# Next 16.4 adapts these plugins for ESLint 10; their published peers still stop at 9.
+# Keep every other missing/invalid peer fatal and review exceptions on plugin upgrades.
+strictPeerDependencies: true
+peerDependencyRules:
+  allowedVersions:
+    "eslint-plugin-import@2.32.0>eslint": "^10.12.0"
+    "eslint-plugin-react@7.37.5>eslint": "^10.12.0"
+    "eslint-plugin-jsx-a11y@6.10.2>eslint": "^10.12.0"
 # Keep the migration confined to the existing Next lint plugin version.
 overrides:
   "@next/eslint-plugin-next@16.4.0>fast-glob": "-"
